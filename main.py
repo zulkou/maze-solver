@@ -1,4 +1,5 @@
 from tkinter import Tk, BOTH, Canvas
+import time
 
 
 class Window:
@@ -102,6 +103,45 @@ class Cell:
             line = Line(Point(self.center_x, self.center_y), Point(to_cell.center_x, to_cell.center_y))
             line.draw(self._win.canvas, color)
 
+class Maze():
+    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win):
+        self._x1 = x1
+        self._y1 = y1
+        self._num_rows = num_rows
+        self._num_cols = num_cols
+        self._cell_size_x = cell_size_x
+        self._cell_size_y = cell_size_y
+        self._win = win
+
+        self._cells = []
+        self._create_cells()
+
+    def _create_cells(self):
+        for i in range(self._num_cols):
+            column = []
+            for j in range(self._num_rows):
+                column.append(
+                    Cell(
+                        self._x1 + i*self._cell_size_x, 
+                        self._x1 + (i+1)*self._cell_size_x, 
+                        self._y1 + j*self._cell_size_y, 
+                        self._y1 + (j+1)*self._cell_size_y,
+                        self._win
+                    )
+                )
+            self._cells.append(column)
+            for j in range(self._num_rows):
+                self._draw_cell(i, j)
+
+    def _draw_cell(self, i, j):
+        cell = self._cells[i][j]
+        cell.draw()
+        self._animate()
+
+    def _animate(self):
+        self._win.redraw()
+        time.sleep(0.05)
+
 def main():
     win = Window(800, 600)
 
@@ -110,18 +150,20 @@ def main():
     # line = Line(point1, point2)
     # win.draw_line(line, "black")
 
-    cell1 = Cell(350, 400, 250, 300, win, has_right_wall=False)
-    cell1.draw()
-    cell2 = Cell(400, 450, 250, 300, win, has_left_wall=False, has_bottom_wall=False)
-    cell2.draw()
-    cell3 = Cell(350, 400, 300, 350, win, has_right_wall=False)
-    cell3.draw()
-    cell4 = Cell(400, 450, 300, 350, win, has_left_wall=False, has_top_wall=False)
-    cell4.draw()
+    # cell1 = Cell(350, 400, 250, 300, win, has_right_wall=False)
+    # cell1.draw()
+    # cell2 = Cell(400, 450, 250, 300, win, has_left_wall=False, has_bottom_wall=False)
+    # cell2.draw()
+    # cell3 = Cell(350, 400, 300, 350, win, has_right_wall=False)
+    # cell3.draw()
+    # cell4 = Cell(400, 450, 300, 350, win, has_left_wall=False, has_top_wall=False)
+    # cell4.draw()
 
-    cell1.draw_move(cell2)
-    cell2.draw_move(cell4)
-    cell4.draw_move(cell3)
+    # cell1.draw_move(# cell2)
+    # cell2.draw_move(# cell4)
+    # cell4.draw_move(# cell3)
+    maze = Maze(50, 50, 4, 5, 20, 20, win)
+    maze._create_cells()
 
     win.wait_for_close()
 
