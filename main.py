@@ -54,17 +54,20 @@ class Line:
 
 
 class Cell:
-    def __init__(self, x1, x2, y1, y2, win):
+    def __init__(self, x1, x2, y1, y2, win, has_left_wall=True, has_right_wall=True, has_top_wall= True, has_bottom_wall=True):
         self._x1 = x1
         self._x2 = x2
         self._y1 = y1
         self._y2 = y2
         self._win = win
 
-        self.has_left_wall = True
-        self.has_right_wall = True
-        self.has_top_wall = True
-        self.has_bottom_wall = True
+        self.has_left_wall = has_left_wall
+        self.has_right_wall = has_right_wall
+        self.has_top_wall = has_top_wall
+        self.has_bottom_wall = has_bottom_wall
+
+        self.center_x = (self._x1 + self._x2) / 2
+        self.center_y = (self._y1 + self._y2) / 2
 
     def draw(self):
         if self.has_left_wall:
@@ -79,25 +82,47 @@ class Cell:
         if self.has_bottom_wall:
             line = Line(Point(self._x1, self._y2), Point(self._x2, self._y2))
             line.draw(self._win.canvas)
+    
+    def draw_move(self, to_cell, undo=False):
+        if undo:
+            color = "grey"
+        else:
+            color = "red"
 
+        if not self.has_left_wall and not to_cell.has_right_wall:
+            line = Line(Point(self.center_x, self.center_y), Point(to_cell.center_x, to_cell.center_y))
+            line.draw(self._win.canvas, color)
+        if not self.has_right_wall and not to_cell.has_left_wall:
+            line = Line(Point(self.center_x, self.center_y), Point(to_cell.center_x, to_cell.center_y))
+            line.draw(self._win.canvas, color)
+        if not self.has_top_wall and not to_cell.has_bottom_wall:
+            line = Line(Point(self.center_x, self.center_y), Point(to_cell.center_x, to_cell.center_y))
+            line.draw(self._win.canvas, color)
+        if not self.has_bottom_wall and not to_cell.has_top_wall:
+            line = Line(Point(self.center_x, self.center_y), Point(to_cell.center_x, to_cell.center_y))
+            line.draw(self._win.canvas, color)
 
 def main():
     win = Window(800, 600)
 
-    point1 = Point(200, 300)
-    point2 = Point(600, 300)
-    line = Line(point1, point2)
+    # point1 = Point(200, 300)
+    # point2 = Point(600, 300)
+    # line = Line(point1, point2)
+    # win.draw_line(line, "black")
 
-    cell1 = Cell(350, 400, 250, 300, win)
+    cell1 = Cell(350, 400, 250, 300, win, has_right_wall=False)
     cell1.draw()
-    cell2 = Cell(400, 450, 250, 300, win)
+    cell2 = Cell(400, 450, 250, 300, win, has_left_wall=False, has_bottom_wall=False)
     cell2.draw()
-    cell3 = Cell(350, 400, 300, 350, win)
+    cell3 = Cell(350, 400, 300, 350, win, has_right_wall=False)
     cell3.draw()
-    cell4 = Cell(400, 450, 300, 350, win)
+    cell4 = Cell(400, 450, 300, 350, win, has_left_wall=False, has_top_wall=False)
     cell4.draw()
 
-    win.draw_line(line, "black")
+    cell1.draw_move(cell2)
+    cell2.draw_move(cell4)
+    cell4.draw_move(cell3)
+
     win.wait_for_close()
 
 
