@@ -1,5 +1,6 @@
 from tkinter import Tk, BOTH, Canvas
 import time
+import random
 
 
 class Window:
@@ -16,6 +17,8 @@ class Window:
 
         self.is_running = False
 
+        self.__root.protocol("WM_DELETE_WINDOW", self.close)
+
     def redraw(self):
         self.__root.update_idletasks()
         self.__root.update()
@@ -27,6 +30,7 @@ class Window:
 
     def close(self):
         self.is_running = False
+        self.__root.destroy()
 
     def draw_line(self, line, fill_color):
         line.draw(self.canvas, fill_color)
@@ -80,6 +84,8 @@ class Cell:
 
         self.center_x = (self._x1 + self._x2) / 2
         self.center_y = (self._y1 + self._y2) / 2
+
+        self.visited = False
 
     def draw(self):
         left_line = Line(Point(self._x1, self._y1), Point(self._x1, self._y2))
@@ -136,7 +142,9 @@ class Cell:
 
 
 class Maze:
-    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win=None):
+    def __init__(
+        self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win=None, seed=None
+    ):
         self._x1 = x1
         self._y1 = y1
         self._num_rows = num_rows
@@ -148,16 +156,21 @@ class Maze:
         self._cells = []
         self._create_cells()
 
+        if seed is not None:
+            random.seed(seed)
+        self._break_walls_r(0, 0)
+        self._break_entrance_and_exit()
+
     def _create_cells(self):
         for i in range(self._num_rows):
             column = []
             for j in range(self._num_cols):
                 column.append(
                     Cell(
-                        self._x1 + i * self._cell_size_x,
-                        self._x1 + (i + 1) * self._cell_size_x,
-                        self._y1 + j * self._cell_size_y,
-                        self._y1 + (j + 1) * self._cell_size_y,
+                        self._x1 + j * self._cell_size_x,
+                        self._x1 + (j + 1) * self._cell_size_x,
+                        self._y1 + i * self._cell_size_y,
+                        self._y1 + (i + 1) * self._cell_size_y,
                         self._win,
                     )
                 )
@@ -178,15 +191,65 @@ class Maze:
         self._win.redraw()
         time.sleep(0.05)
 
-    def _break_entrance_and_exit(self):        
+    def _break_entrance_and_exit(self):
         start_cell = self._cells[0][0]
-        end_cell = self._cells[self._num_rows-1][self._num_cols-1]
+        end_cell = self._cells[self._num_rows - 1][self._num_cols - 1]
 
         start_cell.has_top_wall = False
         self._draw_cell(0, 0)
-        
+
         end_cell.has_bottom_wall = False
-        self._draw_cell(self._num_rows-1, self._num_cols-1)
+        self._draw_cell(self._num_rows - 1, self._num_cols - 1)
+
+    def _break_walls_r(self, i, j):
+        curr_cell = self._cells[i][j]
+        curr_cell.visited = True
+        self._draw_cell(i, j)
+
+        dir_avail = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        while True:
+            to_visit = []
+            for di, dj in dir_avail:
+                new_i, new_j = i + di, j + dj
+                if self._is_valid_move(i, j, new_i, new_j):
+                    to_visit.append((new_i, new_j))
+            if len(to_visit) == 0:
+                self._draw_cell(i, j)
+                return
+            else:
+                random.shuffle(to_visit)
+                goto_index = random.randrange(0, len(to_visit))
+                next_cell = to_visit[goto_index]
+
+                next_i, next_j = next_cell
+
+                if next_i < i:
+                    self._cells[i][j].has_top_wall = False
+                    self._cells[next_i][next_j].has_bottom_wall = False
+                elif next_i > i:
+                    self._cells[i][j].has_bottom_wall = False
+                    self._cells[next_i][next_j].has_top_wall = False
+                elif next_j < j:
+                    self._cells[i][j].has_left_wall = False
+                    self._cells[next_i][next_j].has_right_wall = False
+                elif next_j > j:
+                    self._cells[i][j].has_right_wall = False
+                    self._cells[next_i][next_j].has_left_wall = False
+
+                self._break_walls_r(next_i, next_j)
+
+    def _is_valid_move(self, i, j, new_i, new_j):
+        if not (0 <= new_i < self._num_rows and 0 <= new_j < self._num_cols):
+            return False
+        if self._cells[new_i][new_j].visited:
+            return False
+        if (i == 0 and new_i < i) or \
+           (i == self._num_rows-1 and new_i > i) or \
+           (j == 0 and new_j < j) or \
+           (j == self._num_cols-1 and new_j > j):
+            return False
+        return True
 
 def main():
     win = Window(800, 600)

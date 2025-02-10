@@ -9,11 +9,11 @@ class Tests(unittest.TestCase):
         m1 = Maze(0, 0, num_rows, num_cols, 10, 10)
         self.assertEqual(
             len(m1._cells),
-            num_cols,
+            num_rows,
         )
         self.assertEqual(
             len(m1._cells[0]),
-            num_rows,
+            num_cols,
         )
 
 
