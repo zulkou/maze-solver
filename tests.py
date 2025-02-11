@@ -15,6 +15,12 @@ class Tests(unittest.TestCase):
             len(m1._cells[0]),
             num_cols,
         )
+        for i in range(num_rows):
+            for j in range(num_cols):
+                self.assertEqual(
+                    m1._cells[i][j].visited,
+                    False,
+                )
 
 
 if __name__ == "__main__":

@@ -160,6 +160,7 @@ class Maze:
             random.seed(seed)
         self._break_walls_r(0, 0)
         self._break_entrance_and_exit()
+        self._reset_cells_visited()
 
     def _create_cells(self):
         for i in range(self._num_rows):
@@ -250,6 +251,12 @@ class Maze:
            (j == self._num_cols-1 and new_j > j):
             return False
         return True
+    
+    def _reset_cells_visited(self):
+        for i in range(self._num_rows):
+            for j in range(self._num_cols):
+                self._cells[i][j].visited = False
+
 
 def main():
     win = Window(800, 600)
