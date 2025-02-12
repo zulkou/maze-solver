@@ -257,6 +257,52 @@ class Maze:
             for j in range(self._num_cols):
                 self._cells[i][j].visited = False
 
+    def solve(self):
+        return self._solve_r(0, 0)
+
+    def _solve_r(self, i, j):
+        self._animate()
+        current = self._cells[i][j]
+        current.visited = True
+        if current == self._cells[self._num_rows - 1][self._num_cols - 1]:
+            return True
+        direction = {
+            "right": (0, 1), 
+            "left": (0, -1), 
+            "bottom": (1, 0), 
+            "top": (-1, 0)
+        }
+        for key, val in direction.items():
+            if 0 <= i + val[0] < self._num_rows and 0 <= j + val[1] < self._num_cols:
+                next_cell = self._cells[i + val[0]][j + val[1]]
+                if next_cell is not None and next_cell.visited == False:
+                    if key == "right":
+                        if current.has_right_wall == False and next_cell.has_left_wall == False:
+                            current.draw_move(next_cell)
+                            if self._solve_r(i + val[0], j + val[1]) == True:
+                                return True
+                            current.draw_move(next_cell, undo=True)
+                    if key == "left": 
+                        if current.has_left_wall == False and next_cell.has_right_wall == False:
+                            current.draw_move(next_cell)
+                            if self._solve_r(i + val[0], j + val[1]) == True:
+                                return True
+                            current.draw_move(next_cell, undo=True)
+                    if key == "top": 
+                        if current.has_top_wall == False and next_cell.has_bottom_wall == False:
+                            current.draw_move(next_cell)
+                            if self._solve_r(i + val[0], j + val[1]) == True:
+                                return True
+                            current.draw_move(next_cell, undo=True)
+                    if key == "bottom": 
+                        if current.has_bottom_wall == False and next_cell.has_top_wall == False:
+                            current.draw_move(next_cell)
+                            if self._solve_r(i + val[0], j + val[1]) == True:
+                                return True
+                            current.draw_move(next_cell, undo=True)
+
+        return False
+
 
 def main():
     win = Window(800, 600)
@@ -278,9 +324,8 @@ def main():
     # cell1.draw_move(# cell2)
     # cell2.draw_move(# cell4)
     # cell4.draw_move(# cell3)
-    maze = Maze(50, 50, 4, 5, 20, 20, win)
-    maze._create_cells()
-    maze._break_entrance_and_exit()
+    maze = Maze(50, 50, 20, 20, 20, 20, win)
+    maze.solve()
 
     win.wait_for_close()
 
